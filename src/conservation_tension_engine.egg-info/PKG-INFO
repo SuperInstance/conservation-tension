@@ -1,0 +1,93 @@
+Metadata-Version: 2.4
+Name: conservation-tension-engine
+Version: 0.2.0
+Summary: Pitch-class-aware harmonic tension with Tenney height dissonance, tension gradients, phase-space analysis, and eigenbasis rotation
+License-Expression: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy>=1.24
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Dynamic: license-file
+
+# conservation-tension-engine
+
+A Python library implementing the **conservation of tension** principle from music theory research — measuring harmonic tension, tracking its conservation across chord progressions, and detecting violations.
+
+## Install
+
+```bash
+pip install conservation-tension-engine
+```
+
+## Quick Start
+
+```python
+from conservation_tension import Pitch, Chord, TensionMeter, ChordProgression
+
+# Work with pitches
+p = Pitch.from_name("A4")
+print(p.frequency)  # 440.0
+
+# Parse and analyze chords
+c = Chord.parse("Cmaj7")
+print(c.quality)            # "maj7"
+print(c.tension())          # spectral tension
+
+# Compare tensions
+major = Chord.parse("C")
+dom7  = Chord.parse("G7")
+print(TensionMeter.spectral_tension(major))   # lower
+print(TensionMeter.spectral_tension(dom7))    # higher
+
+# Analyze a full progression
+prog = ChordProgression(["Cmaj7", "Dm7", "G7", "Cmaj7"])
+analysis = prog.analyze(key="C")
+print(analysis.tension_curve)         # per-chord tension
+print(analysis.conservation_score)    # 0-1 smoothness score
+print(analysis.cadences)              # detected cadences (ii-V-I, V-I)
+```
+
+## API Overview
+
+### Pitch
+- `Pitch.from_name("C4")` / `Pitch.from_midi(60)` — construct from name or MIDI
+- `pitch.interval_to(other)` — interval in cents
+- `pitch.harmonics(n=8)` — overtone series as frequencies
+
+### Chord
+- `Chord.parse("Cmaj7")` — parse standard chord symbols
+- `chord.quality` — detected quality (major, minor, dom7, maj7, etc.)
+- `chord.tension(method="spectral")` — compute harmonic tension
+
+### TensionMeter
+- `spectral_tension(chord)` — distance from pure harmonic series
+- `voice_leading_tension(prev, curr)` — minimal voice-leading distance
+- `contextual_tension(chord, key)` — distance from tonal center
+
+### ConservationLaw
+- `check(tensions)` — full conservation analysis
+- `violations(tensions)` — indices where tension jumps exceed threshold
+- `tension_budget(tensions)` — total, average, variance, budget used
+
+### MeantoneComparison
+- `meantone_fifth(ratio=5/4)` — compute meantone fifth size
+- `compare_tension(chord)` — meantone vs equal temperament
+- `wolf_interval("quarter-comma")` — size of the wolf interval
+
+### ChordProgression
+- `analyze()` — full analysis with tension curve, conservation, cadences, key areas
+- `conservation_score()` — 0–1 smoothness measure
+- `cadences()` — detect ii-V-I, V-I patterns
+
+## Development
+
+```bash
+pip install -e ".[dev]"
+pytest tests/
+```
+
+## License
+
+MIT
